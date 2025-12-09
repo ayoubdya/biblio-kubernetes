@@ -55,7 +55,10 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {
             userService.deleteUser(id);
-            return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+            return ResponseEntity.ok(Map.of(
+                "message", "User disabled successfully (soft delete)",
+                "info", "L'utilisateur a été désactivé et ne peut plus se connecter"
+            ));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

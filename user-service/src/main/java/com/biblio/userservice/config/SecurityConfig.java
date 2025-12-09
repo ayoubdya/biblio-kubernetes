@@ -33,8 +33,12 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                // Endpoints publics
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                // Endpoint de synchronisation : nécessite un JWT Keycloak valide
+                .requestMatchers("/api/sync/**").authenticated()
+                // Tous les autres endpoints nécessitent une authentification
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

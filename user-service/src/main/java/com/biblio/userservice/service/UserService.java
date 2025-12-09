@@ -59,6 +59,21 @@ public class UserService {
         return mapToResponse(user);
     }
 
+    public UserResponse validateLogin(String username, String rawPassword) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+        
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
+        }
+        
+        if (!user.isEnabled()) {
+            throw new RuntimeException("Account is disabled");
+        }
+        
+        return mapToResponse(user);
+    }
+
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::mapToResponse)
@@ -130,10 +145,12 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found");
-        }
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Soft delete: désactiver l'utilisateur au lieu de le supprimer
+        user.setEnabled(false);
+        userRepository.save(user);
     }
 
     @Transactional
