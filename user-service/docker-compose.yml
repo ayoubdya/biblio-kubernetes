@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # PostgreSQL Database
@@ -25,7 +25,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:23.0.1
     container_name: biblio-keycloak
-    egit commit '2eme mise a jou'nvironment:
+    environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       KC_HOSTNAME_STRICT: false
@@ -69,7 +69,11 @@ services:
       - postgres
       - keycloak
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://localhost:8081/actuator/health || exit 1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

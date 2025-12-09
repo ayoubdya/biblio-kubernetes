@@ -49,9 +49,10 @@ public class AuthController {
         Map<String, Object> info = new HashMap<>();
         info.put("message", "Pour vous connecter, utilisez Keycloak");
         info.put("endpoint", "POST http://localhost:8180/realms/biblio/protocol/openid-connect/token");
+        info.put("headers", Map.of("Content-Type", "application/x-www-form-urlencoded"));
         info.put("body", Map.of(
                 "grant_type", "password",
-                "client_id", "user-service-client",
+                "client_id", "biblio-client",
                 "username", "votre_username",
                 "password", "votre_password"
         ));
