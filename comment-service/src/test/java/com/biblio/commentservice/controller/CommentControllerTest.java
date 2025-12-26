@@ -1,8 +1,10 @@
 package com.biblio.commentservice.controller;
 
+import com.biblio.commentservice.config.TestSecurityConfig;
 import com.biblio.commentservice.dto.*;
 import com.biblio.commentservice.exception.CommentNotFoundException;
 import com.biblio.commentservice.exception.DuplicateCommentException;
+import com.biblio.commentservice.security.JwtUtils;
 import com.biblio.commentservice.service.CommentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,10 +14,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -26,10 +30,13 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CommentController.class)
+@ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
 class CommentControllerTest {
 
   @Autowired
@@ -40,6 +47,9 @@ class CommentControllerTest {
 
   @MockBean
   private CommentService commentService;
+
+  @MockBean
+  private JwtUtils jwtUtils;
 
   private CommentResponse sampleComment;
   private CreateCommentRequest createRequest;
@@ -83,6 +93,9 @@ class CommentControllerTest {
           .thenReturn(sampleComment);
 
       mockMvc.perform(post("/api/comments")
+          .with(jwt().jwt(builder -> builder
+              .subject("user123")
+              .claim("preferred_username", "testuser")))
           .contentType(MediaType.APPLICATION_JSON)
           .content(objectMapper.writeValueAsString(createRequest)))
           .andExpect(status().isCreated())
@@ -102,6 +115,9 @@ class CommentControllerTest {
           .thenThrow(new DuplicateCommentException("OL27448W", "user123"));
 
       mockMvc.perform(post("/api/comments")
+          .with(jwt().jwt(builder -> builder
+              .subject("user123")
+              .claim("preferred_username", "testuser")))
           .contentType(MediaType.APPLICATION_JSON)
           .content(objectMapper.writeValueAsString(createRequest)))
           .andExpect(status().isConflict());
@@ -119,6 +135,9 @@ class CommentControllerTest {
           .build();
 
       mockMvc.perform(post("/api/comments")
+          .with(jwt().jwt(builder -> builder
+              .subject("user123")
+              .claim("preferred_username", "testuser")))
           .contentType(MediaType.APPLICATION_JSON)
           .content(objectMapper.writeValueAsString(invalidRequest)))
           .andExpect(status().isBadRequest());
@@ -212,10 +231,11 @@ class CommentControllerTest {
           .updatedAt(LocalDateTime.now())
           .build();
 
-      when(commentService.updateComment(eq(1L), any(UpdateCommentRequest.class)))
+      when(commentService.updateComment(eq(1L), any(UpdateCommentRequest.class), eq("user123")))
           .thenReturn(updatedComment);
 
       mockMvc.perform(put("/api/comments/1")
+          .with(jwt().jwt(builder -> builder.subject("user123")))
           .contentType(MediaType.APPLICATION_JSON)
           .content(objectMapper.writeValueAsString(updateRequest)))
           .andExpect(status().isOk())
@@ -226,10 +246,11 @@ class CommentControllerTest {
     @Test
     @DisplayName("Should return 404 when updating non-existent comment")
     void shouldReturn404WhenUpdatingNonExistent() throws Exception {
-      when(commentService.updateComment(eq(999L), any(UpdateCommentRequest.class)))
+      when(commentService.updateComment(eq(999L), any(UpdateCommentRequest.class), eq("user123")))
           .thenThrow(new CommentNotFoundException(999L));
 
       mockMvc.perform(put("/api/comments/999")
+          .with(jwt().jwt(builder -> builder.subject("user123")))
           .contentType(MediaType.APPLICATION_JSON)
           .content(objectMapper.writeValueAsString(updateRequest)))
           .andExpect(status().isNotFound());
@@ -243,21 +264,23 @@ class CommentControllerTest {
     @Test
     @DisplayName("Should delete comment successfully")
     void shouldDeleteCommentSuccessfully() throws Exception {
-      doNothing().when(commentService).deleteComment(1L);
+      doNothing().when(commentService).deleteComment(1L, "user123");
 
-      mockMvc.perform(delete("/api/comments/1"))
+      mockMvc.perform(delete("/api/comments/1")
+          .with(jwt().jwt(builder -> builder.subject("user123"))))
           .andExpect(status().isNoContent());
 
-      verify(commentService).deleteComment(1L);
+      verify(commentService).deleteComment(1L, "user123");
     }
 
     @Test
     @DisplayName("Should return 404 when deleting non-existent comment")
     void shouldReturn404WhenDeletingNonExistent() throws Exception {
       doThrow(new CommentNotFoundException(999L))
-          .when(commentService).deleteComment(999L);
+          .when(commentService).deleteComment(999L, "user123");
 
-      mockMvc.perform(delete("/api/comments/999"))
+      mockMvc.perform(delete("/api/comments/999")
+          .with(jwt().jwt(builder -> builder.subject("user123"))))
           .andExpect(status().isNotFound());
     }
   }

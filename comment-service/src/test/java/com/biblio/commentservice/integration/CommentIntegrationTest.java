@@ -1,5 +1,6 @@
 package com.biblio.commentservice.integration;
 
+import com.biblio.commentservice.config.TestSecurityConfig;
 import com.biblio.commentservice.dto.CreateCommentRequest;
 import com.biblio.commentservice.dto.UpdateCommentRequest;
 import com.biblio.commentservice.entity.Comment;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,12 +20,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
 class CommentIntegrationTest {
 
   @Autowired
@@ -53,6 +57,9 @@ class CommentIntegrationTest {
         .build();
 
     String createResponse = mockMvc.perform(post("/api/comments")
+        .with(jwt().jwt(builder -> builder
+            .subject("user123")
+            .claim("preferred_username", "testuser")))
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(createRequest)))
         .andExpect(status().isCreated())
@@ -78,6 +85,7 @@ class CommentIntegrationTest {
         .build();
 
     mockMvc.perform(put("/api/comments/" + commentId)
+        .with(jwt().jwt(builder -> builder.subject("user123")))
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(updateRequest)))
         .andExpect(status().isOk())
@@ -85,7 +93,8 @@ class CommentIntegrationTest {
         .andExpect(jsonPath("$.rating", is(4)));
 
     // Delete
-    mockMvc.perform(delete("/api/comments/" + commentId))
+    mockMvc.perform(delete("/api/comments/" + commentId)
+        .with(jwt().jwt(builder -> builder.subject("user123"))))
         .andExpect(status().isNoContent());
 
     // Verify deleted
@@ -168,6 +177,9 @@ class CommentIntegrationTest {
 
     // First comment should succeed
     mockMvc.perform(post("/api/comments")
+        .with(jwt().jwt(builder -> builder
+            .subject("user123")
+            .claim("preferred_username", "testuser")))
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isCreated());
@@ -175,6 +187,9 @@ class CommentIntegrationTest {
     // Second comment from same user on same book should fail
     request.setContent("Second comment");
     mockMvc.perform(post("/api/comments")
+        .with(jwt().jwt(builder -> builder
+            .subject("user123")
+            .claim("preferred_username", "testuser")))
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isConflict());
@@ -193,6 +208,9 @@ class CommentIntegrationTest {
         .build();
 
     mockMvc.perform(post("/api/comments")
+        .with(jwt().jwt(builder -> builder
+            .subject("user123")
+            .claim("preferred_username", "testuser")))
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(invalidRequest)))
         .andExpect(status().isBadRequest())

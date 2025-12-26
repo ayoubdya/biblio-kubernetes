@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.biblio.commentservice.integration.CommentIntegrationTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.534 s -- in com.biblio.commentservice.integration.CommentIntegrationTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.857 s -- in com.biblio.commentservice.integration.CommentIntegrationTest

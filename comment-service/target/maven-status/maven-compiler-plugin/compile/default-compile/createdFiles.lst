@@ -1,8 +1,13 @@
 com/biblio/commentservice/dto/BookRatingStats.class
-com/biblio/commentservice/entity/Comment$CommentBuilder.class
 com/biblio/commentservice/entity/Comment.class
 com/biblio/commentservice/dto/BookRatingStats$BookRatingStatsBuilder.class
 com/biblio/commentservice/exception/GlobalExceptionHandler.class
+com/biblio/commentservice/exception/CommentNotFoundException.class
+com/biblio/commentservice/service/CommentService.class
+com/biblio/commentservice/mapper/CommentMapper.class
+com/biblio/commentservice/dto/CommentResponse.class
+com/biblio/commentservice/dto/UpdateCommentRequest$UpdateCommentRequestBuilder.class
+com/biblio/commentservice/entity/Comment$CommentBuilder.class
 com/biblio/commentservice/config/MetricsConfig.class
 com/biblio/commentservice/dto/UpdateCommentRequest.class
 com/biblio/commentservice/CommentServiceApplication.class
@@ -10,12 +15,7 @@ com/biblio/commentservice/dto/CommentResponse$CommentResponseBuilder.class
 com/biblio/commentservice/exception/GlobalExceptionHandler$ErrorResponse.class
 com/biblio/commentservice/exception/GlobalExceptionHandler$ErrorResponse$ErrorResponseBuilder.class
 com/biblio/commentservice/repository/CommentRepository.class
-com/biblio/commentservice/exception/CommentNotFoundException.class
-com/biblio/commentservice/service/CommentService.class
 com/biblio/commentservice/exception/DuplicateCommentException.class
 com/biblio/commentservice/dto/CreateCommentRequest.class
-com/biblio/commentservice/mapper/CommentMapper.class
 com/biblio/commentservice/controller/CommentController.class
-com/biblio/commentservice/dto/CommentResponse.class
 com/biblio/commentservice/dto/CreateCommentRequest$CreateCommentRequestBuilder.class
-com/biblio/commentservice/dto/UpdateCommentRequest$UpdateCommentRequestBuilder.class

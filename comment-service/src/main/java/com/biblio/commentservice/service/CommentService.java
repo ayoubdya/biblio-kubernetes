@@ -4,6 +4,7 @@ import com.biblio.commentservice.dto.*;
 import com.biblio.commentservice.entity.Comment;
 import com.biblio.commentservice.exception.CommentNotFoundException;
 import com.biblio.commentservice.exception.DuplicateCommentException;
+import com.biblio.commentservice.exception.UnauthorizedAccessException;
 import com.biblio.commentservice.mapper.CommentMapper;
 import com.biblio.commentservice.repository.CommentRepository;
 import io.micrometer.core.instrument.Counter;
@@ -81,11 +82,15 @@ public class CommentService {
         .map(commentMapper::toResponse);
   }
 
-  public CommentResponse updateComment(Long id, UpdateCommentRequest request) {
-    log.info("Updating comment with id: {}", id);
+  public CommentResponse updateComment(Long id, UpdateCommentRequest request, String currentUserId) {
+    log.info("Updating comment with id: {} by user: {}", id, currentUserId);
 
     Comment comment = commentRepository.findById(id)
         .orElseThrow(() -> new CommentNotFoundException(id));
+
+    if (!comment.getUserId().equals(currentUserId)) {
+      throw new UnauthorizedAccessException(id, currentUserId);
+    }
 
     comment.setContent(request.getContent());
     comment.setRating(request.getRating());
@@ -96,16 +101,35 @@ public class CommentService {
     return commentMapper.toResponse(updatedComment);
   }
 
-  public void deleteComment(Long id) {
-    log.info("Deleting comment with id: {}", id);
+  public CommentResponse updateComment(Long id, UpdateCommentRequest request) {
+    Comment comment = commentRepository.findById(id)
+        .orElseThrow(() -> new CommentNotFoundException(id));
+    comment.setContent(request.getContent());
+    comment.setRating(request.getRating());
+    return commentMapper.toResponse(commentRepository.save(comment));
+  }
 
-    if (!commentRepository.existsById(id)) {
-      throw new CommentNotFoundException(id);
+  public void deleteComment(Long id, String currentUserId) {
+    log.info("Deleting comment with id: {} by user: {}", id, currentUserId);
+
+    Comment comment = commentRepository.findById(id)
+        .orElseThrow(() -> new CommentNotFoundException(id));
+
+    if (!comment.getUserId().equals(currentUserId)) {
+      throw new UnauthorizedAccessException(id, currentUserId);
     }
 
     commentRepository.deleteById(id);
     commentsDeletedCounter.increment();
     log.info("Comment deleted with id: {}", id);
+  }
+
+  public void deleteComment(Long id) {
+    if (!commentRepository.existsById(id)) {
+      throw new CommentNotFoundException(id);
+    }
+    commentRepository.deleteById(id);
+    commentsDeletedCounter.increment();
   }
 
   @Transactional(readOnly = true)

@@ -52,6 +52,17 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
   }
 
+  @ExceptionHandler(UnauthorizedAccessException.class)
+  public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
+    ErrorResponse error = ErrorResponse.builder()
+        .timestamp(LocalDateTime.now())
+        .status(HttpStatus.FORBIDDEN.value())
+        .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+        .message(ex.getMessage())
+        .build();
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
     Map<String, Object> response = new HashMap<>();

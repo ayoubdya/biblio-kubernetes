@@ -1,5 +1,6 @@
 /home/microgod/downloads/biblio-kubernetes/comment-service/src/test/java/com/biblio/commentservice/service/CommentServiceTest.java
 /home/microgod/downloads/biblio-kubernetes/comment-service/src/test/java/com/biblio/commentservice/integration/CommentIntegrationTest.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/test/java/com/biblio/commentservice/config/TestSecurityConfig.java
 /home/microgod/downloads/biblio-kubernetes/comment-service/src/test/java/com/biblio/commentservice/repository/CommentRepositoryTest.java
 /home/microgod/downloads/biblio-kubernetes/comment-service/src/test/java/com/biblio/commentservice/controller/CommentControllerTest.java
 /home/microgod/downloads/biblio-kubernetes/comment-service/src/test/java/com/biblio/commentservice/CommentServiceApplicationTests.java

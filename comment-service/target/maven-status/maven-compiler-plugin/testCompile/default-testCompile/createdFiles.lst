@@ -1,6 +1,5 @@
 com/biblio/commentservice/service/CommentServiceTest$GetCommentById.class
 com/biblio/commentservice/service/CommentServiceTest$GetCommentsByUserId.class
-com/biblio/commentservice/CommentServiceApplicationTests.class
 com/biblio/commentservice/service/CommentServiceTest$GetCommentsByBookKey.class
 com/biblio/commentservice/service/CommentServiceTest.class
 com/biblio/commentservice/service/CommentServiceTest$UpdateComment.class
