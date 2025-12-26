@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  comment-service:
+    build: .
+    container_name: comment-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SERVER_PORT=8082
+      - DB_HOST=comment-db
+      - DB_PORT=5432
+      - DB_NAME=commentdb
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      comment-db:
+        condition: service_healthy
+    networks:
+      - biblio-network
+
+  comment-db:
+    image: postgres:15-alpine
+    container_name: comment-db
+    environment:
+      - POSTGRES_DB=commentdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - comment-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - biblio-network
+
+volumes:
+  comment-db-data:
+
+networks:
+  biblio-network:
+    driver: bridge

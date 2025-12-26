@@ -1,0 +1,14 @@
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/dto/CommentResponse.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/exception/CommentNotFoundException.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/CommentServiceApplication.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/config/MetricsConfig.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/dto/BookRatingStats.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/exception/DuplicateCommentException.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/service/CommentService.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/dto/CreateCommentRequest.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/repository/CommentRepository.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/controller/CommentController.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/mapper/CommentMapper.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/exception/GlobalExceptionHandler.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/dto/UpdateCommentRequest.java
+/home/microgod/downloads/biblio-kubernetes/comment-service/src/main/java/com/biblio/commentservice/entity/Comment.java
