@@ -25,7 +25,7 @@ public class BookService {
 
     OpenLibrarySearchResponse response = openLibraryClient.searchBooks(query, page, limit);
 
-    return mapToSearchResult(response);
+    return mapToSearchResult(response, limit);
   }
 
   public SearchResult searchBooksByTitle(String title, Integer page, Integer limit) {
@@ -33,7 +33,7 @@ public class BookService {
 
     OpenLibrarySearchResponse response = openLibraryClient.searchByTitle(title, page, limit);
 
-    return mapToSearchResult(response);
+    return mapToSearchResult(response, limit);
   }
 
   public SearchResult searchBooksByAuthor(String author, Integer page, Integer limit) {
@@ -41,7 +41,7 @@ public class BookService {
 
     OpenLibrarySearchResponse response = openLibraryClient.searchByAuthor(author, page, limit);
 
-    return mapToSearchResult(response);
+    return mapToSearchResult(response, limit);
   }
 
   public SearchResult searchBooksBySubject(String subject, Integer page, Integer limit) {
@@ -49,7 +49,7 @@ public class BookService {
 
     OpenLibrarySearchResponse response = openLibraryClient.searchBySubject(subject, page, limit);
 
-    return mapToSearchResult(response);
+    return mapToSearchResult(response, limit);
   }
 
   public Book getBookByKey(String workKey) {
@@ -66,12 +66,13 @@ public class BookService {
     return mapWorkToBook(workResponse);
   }
 
-  private SearchResult mapToSearchResult(OpenLibrarySearchResponse response) {
+  private SearchResult mapToSearchResult(OpenLibrarySearchResponse response, Integer limit) {
     if (response == null) {
       return SearchResult.builder()
           .numFound(0)
           .start(0)
           .books(new ArrayList<>())
+          .limit(limit != null ? limit : 10)
           .build();
     }
 
@@ -85,6 +86,7 @@ public class BookService {
         .numFound(response.getNumFound())
         .start(response.getStart())
         .books(books)
+        .limit(limit != null ? limit : 10)
         .build();
   }
 

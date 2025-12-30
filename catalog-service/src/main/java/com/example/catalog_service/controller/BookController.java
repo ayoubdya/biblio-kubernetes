@@ -19,7 +19,7 @@ public class BookController {
   // GET /api/books/search?q=lord+of+the+rings&page=1&limit=10
   @GetMapping("/search")
   public ResponseEntity<SearchResult> searchBooks(
-      @RequestParam("q") String query,
+      @RequestParam(value = "q", required = false, defaultValue = "") String query,
       @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
       @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit) {
 

@@ -40,6 +40,22 @@ public class CommentController {
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
+  // Endpoint public pour démo (sans authentification)
+  @PostMapping("/public")
+  public ResponseEntity<CommentResponse> createCommentPublic(
+      @Valid @RequestBody CreateCommentRequest request) {
+
+    // Pour la démo, utiliser userId et username de la requête
+    if (request.getUsername() == null || request.getUsername().isEmpty()) {
+      request.setUsername(request.getUserId());
+    }
+
+    log.info("POST /api/comments/public - Creating public comment for book: {} by user: {}",
+        request.getBookKey(), request.getUsername());
+    CommentResponse response = commentService.createComment(request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  }
+
   @GetMapping("/{id}")
   public ResponseEntity<CommentResponse> getCommentById(@PathVariable Long id) {
     log.info("GET /api/comments/{} - Fetching comment", id);
@@ -91,6 +107,14 @@ public class CommentController {
     log.info("DELETE /api/comments/{} - Deleting comment by user: {}", id, currentUserId);
 
     commentService.deleteComment(id, currentUserId);
+    return ResponseEntity.noContent().build();
+  }
+
+  // Endpoint public pour démo (sans authentification)
+  @DeleteMapping("/public/{id}")
+  public ResponseEntity<Void> deleteCommentPublic(@PathVariable Long id) {
+    log.info("DELETE /api/comments/public/{} - Deleting public comment", id);
+    commentService.deleteComment(id);
     return ResponseEntity.noContent().build();
   }
 

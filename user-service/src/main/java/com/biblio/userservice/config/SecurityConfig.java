@@ -36,6 +36,8 @@ public class SecurityConfig {
                 // Endpoints publics
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                // Lecture des utilisateurs publique pour l'admin frontend
+                .requestMatchers("/api/users").permitAll()
                 // Endpoint de synchronisation : nécessite un JWT Keycloak valide
                 .requestMatchers("/api/sync/**").authenticated()
                 // Tous les autres endpoints nécessitent une authentification

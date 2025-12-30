@@ -31,6 +31,8 @@ public class SecurityConfig {
         .cors(cors -> cors.configure(http))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/comments/public").permitAll()
+            .requestMatchers(HttpMethod.DELETE, "/api/comments/public/**").permitAll()
             .requestMatchers("/actuator/**").permitAll()
 
             .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()

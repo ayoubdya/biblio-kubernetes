@@ -1,5 +1,6 @@
 package com.example.catalog_service.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +15,9 @@ import java.util.List;
 public class SearchResult {
   private Integer numFound;
   private Integer start;
+  
+  @JsonProperty("docs")
   private List<Book> books;
+  
+  private Integer limit;
 }

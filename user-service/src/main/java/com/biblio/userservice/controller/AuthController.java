@@ -3,8 +3,10 @@ package com.biblio.userservice.controller;
 import com.biblio.userservice.dto.RegisterRequest;
 import com.biblio.userservice.dto.UserResponse;
 import com.biblio.userservice.service.KeycloakAdminService;
+import com.biblio.userservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,15 +23,24 @@ import java.util.Map;
 public class AuthController {
 
     private final KeycloakAdminService keycloakAdminService;
+    private final UserService userService;
+    
+    @Value("${keycloak.enabled:false}")
+    private boolean keycloakEnabled;
 
     /**
-     * Enregistre un nouvel utilisateur dans Keycloak et PostgreSQL
+     * Enregistre un nouvel utilisateur (Keycloak si activé, sinon PostgreSQL direct)
      * POST /api/auth/register
      */
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
-            UserResponse userResponse = keycloakAdminService.registerUser(request);
+            UserResponse userResponse;
+            if (keycloakEnabled) {
+                userResponse = keycloakAdminService.registerUser(request);
+            } else {
+                userResponse = userService.registerUser(request);
+            }
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Utilisateur enregistré avec succès");
             response.put("user", userResponse);
