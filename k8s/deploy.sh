@@ -301,7 +301,7 @@ main() {
             deploy_databases
             deploy_keycloak
             deploy_microservices
-            # deploy_monitoring
+            deploy_monitoring
             deploy_ingress
             show_status
             show_access_info
