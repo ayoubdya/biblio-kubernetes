@@ -12,10 +12,10 @@ export default function ProfilePage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50 to-purple-50 flex items-center justify-center">
       <div className="text-center">
-        <div className="spinner h-12 w-12 mx-auto mb-4"></div>
-        <p className="text-gray-600">Redirection...</p>
+        <div className="spinner mx-auto mb-4"></div>
+        <p className="text-gray-600 font-medium">Redirection...</p>
       </div>
     </div>
   );
