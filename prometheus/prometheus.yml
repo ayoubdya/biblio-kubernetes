@@ -1,0 +1,49 @@
+# Prometheus configuration for Biblio Microservices
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: "biblio-monitor"
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+# rule_files:
+#   - "alert_rules.yml"
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+    metrics_path: /prometheus/metrics
+
+  # Catalog Service metrics
+  - job_name: "catalog-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["catalog-service:8080"]
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # User Service metrics (if actuator enabled)
+  - job_name: "user-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["user-service:8081"]
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Comment Service metrics (if actuator enabled)
+  - job_name: "comment-service"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["comment-service:8082"]
+    scrape_interval: 10s
+    scrape_timeout: 5s
