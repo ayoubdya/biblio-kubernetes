@@ -194,25 +194,6 @@ deploy_monitoring() {
     print_status "Monitoring stack deployed"
 }
 
-# Deploy ELK Stack
-deploy_elk() {
-    echo -e "\n${BLUE}Deploying ELK Stack...${NC}"
-    
-    kubectl apply -f "${SCRIPT_DIR}/elasticsearch.yaml"
-    
-    echo "Waiting for Elasticsearch to be ready..."
-    kubectl wait --for=condition=ready pod -l app=elasticsearch -n ${NAMESPACE} --timeout=180s || true
-    
-    kubectl apply -f "${SCRIPT_DIR}/logstash.yaml"
-    kubectl apply -f "${SCRIPT_DIR}/kibana.yaml"
-    
-    echo "Waiting for Logstash and Kibana to be ready..."
-    kubectl wait --for=condition=ready pod -l app=logstash -n ${NAMESPACE} --timeout=120s || true
-    kubectl wait --for=condition=ready pod -l app=kibana -n ${NAMESPACE} --timeout=180s || true
-    
-    print_status "ELK Stack deployed"
-}
-
 # Deploy Ingress
 deploy_ingress() {
     echo -e "\n${BLUE}Deploying Ingress...${NC}"
@@ -270,7 +251,6 @@ show_access_info() {
     echo -e "  Keycloak:    http://biblio.local/auth/"
     echo -e "  Prometheus:  http://biblio.local/prometheus/"
     echo -e "  Grafana:     http://biblio.local/grafana/ (admin/admin123)"
-    echo -e "  Kibana:      http://biblio.local/kibana/"
     
     echo -e "\n${GREEN}For Minikube users:${NC}"
     echo -e "  Run: minikube tunnel"
@@ -304,9 +284,6 @@ main() {
         monitoring)
             deploy_monitoring
             ;;
-        elk)
-            deploy_elk
-            ;;
         ingress)
             deploy_ingress
             ;;
@@ -321,7 +298,6 @@ main() {
             load_images_kind
             create_namespace
             deploy_core
-            deploy_elk
             deploy_databases
             deploy_keycloak
             deploy_microservices
@@ -336,7 +312,7 @@ main() {
             print_status "Namespace ${NAMESPACE} deleted"
             ;;
         *)
-            echo "Usage: $0 {all|check|build|core|databases|keycloak|microservices|monitoring|elk|ingress|status|delete}"
+            echo "Usage: $0 {all|check|build|core|databases|keycloak|microservices|monitoring|ingress|status|delete}"
             echo ""
             echo "Commands:"
             echo "  all           - Deploy everything (default)"
@@ -347,7 +323,6 @@ main() {
             echo "  keycloak      - Deploy Keycloak"
             echo "  microservices - Deploy all microservices"
             echo "  monitoring    - Deploy Prometheus & Grafana"
-            echo "  elk           - Deploy Elasticsearch, Logstash, Kibana"
             echo "  ingress       - Deploy Ingress resources"
             echo "  status        - Show deployment status"
             echo "  delete        - Delete all resources"

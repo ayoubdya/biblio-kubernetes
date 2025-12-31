@@ -42,16 +42,6 @@ spec:
                 configMapKeyRef:
                   name: biblio-config
                   key: OPENLIBRARY_API_COVERS_URL
-            - name: LOGSTASH_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: biblio-config
-                  key: LOGSTASH_HOST
-            - name: LOGSTASH_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: biblio-config
-                  key: LOGSTASH_PORT
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness

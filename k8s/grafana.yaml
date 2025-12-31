@@ -16,19 +16,6 @@ data:
         url: http://prometheus:9090/prometheus
         isDefault: true
         editable: false
-      - name: Elasticsearch
-        type: elasticsearch
-        uid: elasticsearch
-        access: proxy
-        url: http://elasticsearch:9200
-        database: "biblio-logs-*"
-        isDefault: false
-        editable: false
-        jsonData:
-          timeField: "@timestamp"
-          esVersion: "8.0.0"
-          logMessageField: message
-          logLevelField: level
 ---
 # Grafana Dashboard Provider ConfigMap
 apiVersion: v1

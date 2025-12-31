@@ -79,16 +79,6 @@ spec:
                 secretKeyRef:
                   name: biblio-secrets
                   key: KEYCLOAK_ADMIN_PASSWORD
-            - name: LOGSTASH_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: biblio-config
-                  key: LOGSTASH_HOST
-            - name: LOGSTASH_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: biblio-config
-                  key: LOGSTASH_PORT
           livenessProbe:
             httpGet:
               path: /actuator/health

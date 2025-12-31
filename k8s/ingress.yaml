@@ -98,14 +98,6 @@ spec:
                 name: grafana
                 port:
                   number: 3000
-          # Kibana
-          - path: /kibana(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: kibana
-                port:
-                  number: 5601
   # tls:
   # - hosts:
   #   - biblio.local

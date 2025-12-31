@@ -26,12 +26,6 @@ data:
   OPENLIBRARY_API_BASE_URL: "https://openlibrary.org"
   OPENLIBRARY_API_COVERS_URL: "https://covers.openlibrary.org/b"
 
-  # ELK Stack
-  ELASTICSEARCH_HOST: "elasticsearch"
-  ELASTICSEARCH_PORT: "9200"
-  LOGSTASH_HOST: "logstash"
-  LOGSTASH_PORT: "5000"
-
   # Prometheus
   PROMETHEUS_HOST: "prometheus"
   PROMETHEUS_PORT: "9090"
