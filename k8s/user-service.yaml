@@ -33,7 +33,7 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: "kubernetes"
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+              value: "jdbc:postgresql://user-db-service:5432/userdb"
             - name: DB_HOST
               valueFrom:
                 configMapKeyRef:

@@ -292,10 +292,10 @@ main() {
             show_access_info
             ;;
         all)
-            check_prerequisites
-            build_images
-            load_images_minikube
-            load_images_kind
+            # check_prerequisites
+            # build_images
+            # load_images_minikube
+            # load_images_kind
             create_namespace
             deploy_core
             deploy_databases
