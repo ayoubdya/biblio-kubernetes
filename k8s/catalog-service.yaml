@@ -7,7 +7,7 @@ metadata:
   labels:
     app: catalog-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: catalog-service
@@ -15,34 +15,66 @@ spec:
     metadata:
       labels:
         app: catalog-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8080"
     spec:
       containers:
-      - name: catalog-service
-        image: catalog-service:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8080
-          name: http
-        env:
-        - name: SERVER_PORT
-          value: "8080"
-        - name: OPENLIBRARY_API_BASE_URL
-          valueFrom:
-            configMapKeyRef:
-              name: biblio-config
-              key: OPENLIBRARY_API_BASE_URL
-        - name: OPENLIBRARY_API_COVERS_URL
-          valueFrom:
-            configMapKeyRef:
-              name: biblio-config
-              key: OPENLIBRARY_API_COVERS_URL
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
+        - name: catalog-service
+          image: catalog-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            - name: OPENLIBRARY_API_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: OPENLIBRARY_API_BASE_URL
+            - name: OPENLIBRARY_API_COVERS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: OPENLIBRARY_API_COVERS_URL
+            - name: LOGSTASH_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: LOGSTASH_HOST
+            - name: LOGSTASH_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: LOGSTASH_PORT
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -54,10 +86,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 8080
-    targetPort: 8080
-    protocol: TCP
-    name: http
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
   selector:
     app: catalog-service
 ---
@@ -71,18 +103,18 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: catalog-service
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 5
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

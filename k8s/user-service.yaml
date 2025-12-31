@@ -7,7 +7,7 @@ metadata:
   labels:
     app: user-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: user-service
@@ -15,85 +15,103 @@ spec:
     metadata:
       labels:
         app: user-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8081"
     spec:
       containers:
-      - name: user-service
-        image: user-service:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8081
-          name: http
-        env:
-        - name: SERVER_PORT
-          value: "8081"
-        - name: DB_HOST
-          valueFrom:
-            configMapKeyRef:
-              name: biblio-config
-              key: USER_DB_HOST
-        - name: DB_PORT
-          valueFrom:
-            configMapKeyRef:
-              name: biblio-config
-              key: DB_PORT
-        - name: DB_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: biblio-config
-              key: USER_DB_NAME
-        - name: DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: biblio-secrets
-              key: DB_USER
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: biblio-secrets
-              key: DB_PASSWORD
-        - name: KEYCLOAK_JWK_SET_URI
-          valueFrom:
-            configMapKeyRef:
-              name: biblio-config
-              key: KEYCLOAK_JWK_SET_URI
-        - name: KEYCLOAK_SERVER_URL
-          valueFrom:
-            configMapKeyRef:
-              name: biblio-config
-              key: KEYCLOAK_SERVER_URL
-        - name: KEYCLOAK_ADMIN_USER
-          valueFrom:
-            secretKeyRef:
-              name: biblio-secrets
-              key: KEYCLOAK_ADMIN_USER
-        - name: KEYCLOAK_ADMIN_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: biblio-secrets
-              key: KEYCLOAK_ADMIN_PASSWORD
-        livenessProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8081
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /actuator/health
-            port: 8081
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
+        - name: user-service
+          image: user-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+              name: http
+          env:
+            - name: SERVER_PORT
+              value: "8081"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: USER_DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: USER_DB_NAME
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: DB_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: DB_PASSWORD
+            - name: SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: KEYCLOAK_JWK_SET_URI
+            - name: KEYCLOAK_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: KEYCLOAK_SERVER_URL
+            - name: KEYCLOAK_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: KEYCLOAK_ADMIN_USER
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: LOGSTASH_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: LOGSTASH_HOST
+            - name: LOGSTASH_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: LOGSTASH_PORT
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -105,10 +123,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 8081
-    targetPort: 8081
-    protocol: TCP
-    name: http
+    - port: 8081
+      targetPort: 8081
+      protocol: TCP
+      name: http
   selector:
     app: user-service
 ---
@@ -122,18 +140,18 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: user-service
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 5
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

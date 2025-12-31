@@ -8,20 +8,30 @@ data:
   KEYCLOAK_ISSUER_URI: "http://keycloak-service:8080/realms/biblio"
   KEYCLOAK_JWK_SET_URI: "http://keycloak-service:8080/realms/biblio/protocol/openid-connect/certs"
   KEYCLOAK_SERVER_URL: "http://keycloak-service:8080"
-  
+
   # Database Hosts
   USER_DB_HOST: "user-db-service"
   COMMENT_DB_HOST: "comment-db-service"
   FRONTEND_DB_HOST: "frontend-db-service"
-  
+
   # Database Ports
   DB_PORT: "5432"
-  
+
   # Database Names
   USER_DB_NAME: "userdb"
   COMMENT_DB_NAME: "commentdb"
   FRONTEND_DB_NAME: "biblio-kubernetes"
-  
+
   # Open Library API
   OPENLIBRARY_API_BASE_URL: "https://openlibrary.org"
   OPENLIBRARY_API_COVERS_URL: "https://covers.openlibrary.org/b"
+
+  # ELK Stack
+  ELASTICSEARCH_HOST: "elasticsearch"
+  ELASTICSEARCH_PORT: "9200"
+  LOGSTASH_HOST: "logstash"
+  LOGSTASH_PORT: "5000"
+
+  # Prometheus
+  PROMETHEUS_HOST: "prometheus"
+  PROMETHEUS_PORT: "9090"

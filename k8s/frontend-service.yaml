@@ -7,7 +7,7 @@ metadata:
   labels:
     app: frontend-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend-service
@@ -17,79 +17,79 @@ spec:
         app: frontend-service
     spec:
       containers:
-      - name: frontend-service
-        image: frontend-service:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 3000
-          name: http
-        env:
-        - name: DATABASE_URL
-          value: "postgresql://$(DB_USER):$(DB_PASSWORD)@frontend-db-service:5432/biblio-kubernetes"
-        - name: DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: biblio-secrets
-              key: DB_USER
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: biblio-secrets
-              key: DB_PASSWORD
-        - name: NEXTAUTH_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: biblio-secrets
-              key: NEXTAUTH_SECRET
-        - name: NEXTAUTH_URL
-          value: "http://biblio.local"
-        # Variables pour les appels côté serveur (internes Kubernetes)
-        - name: CATALOG_SERVICE_URL
-          value: "http://catalog-service:8080"
-        - name: USER_SERVICE_URL
-          value: "http://user-service:8081"
-        - name: COMMENT_SERVICE_URL
-          value: "http://comment-service:8082"
-        # Variables pour les appels côté client (depuis le navigateur via Ingress)
-        - name: NEXT_PUBLIC_CATALOG_SERVICE_URL
-          value: "http://biblio.local/api/catalog"
-        - name: NEXT_PUBLIC_USER_SERVICE_URL
-          value: "http://biblio.local/api/users"
-        - name: NEXT_PUBLIC_COMMENT_SERVICE_URL
-          value: "http://biblio.local/api/comments"
-        # Configuration Keycloak
-        - name: NEXT_PUBLIC_KEYCLOAK_URL
-          valueFrom:
-            configMapKeyRef:
-              name: biblio-config
-              key: KEYCLOAK_SERVER_URL
-        - name: NEXT_PUBLIC_KEYCLOAK_REALM
-          value: "biblio"
-        - name: NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
-          value: "frontend-client"
-        livenessProbe:
-          httpGet:
-            path: /api/health
-            port: 3000
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /api/health
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "500m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
+        - name: frontend-service
+          image: frontend-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@frontend-db-service:5432/biblio-kubernetes"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: DB_PASSWORD
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: NEXTAUTH_SECRET
+            - name: NEXTAUTH_URL
+              value: "http://biblio.local"
+            # Variables pour les appels côté serveur (internes Kubernetes)
+            - name: CATALOG_SERVICE_URL
+              value: "http://catalog-service:8080"
+            - name: USER_SERVICE_URL
+              value: "http://user-service:8081"
+            - name: COMMENT_SERVICE_URL
+              value: "http://comment-service:8082"
+            # Variables pour les appels côté client (depuis le navigateur via Ingress)
+            - name: NEXT_PUBLIC_CATALOG_SERVICE_URL
+              value: "http://biblio.local/api/catalog"
+            - name: NEXT_PUBLIC_USER_SERVICE_URL
+              value: "http://biblio.local/api/users"
+            - name: NEXT_PUBLIC_COMMENT_SERVICE_URL
+              value: "http://biblio.local/api/comments"
+            # Configuration Keycloak
+            - name: NEXT_PUBLIC_KEYCLOAK_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: biblio-config
+                  key: KEYCLOAK_SERVER_URL
+            - name: NEXT_PUBLIC_KEYCLOAK_REALM
+              value: "biblio"
+            - name: NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
+              value: "frontend-client"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -101,10 +101,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 3000
-    targetPort: 3000
-    protocol: TCP
-    name: http
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP
+      name: http
   selector:
     app: frontend-service
 ---
@@ -118,18 +118,18 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: frontend-service
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 5
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

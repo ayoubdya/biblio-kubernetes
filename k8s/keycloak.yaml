@@ -1,0 +1,182 @@
+---
+# Keycloak Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: biblio
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:23.0
+          args:
+            - start-dev
+            - --import-realm
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: KEYCLOAK_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: KEYCLOAK_ADMIN_USER
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
+            - name: KC_DB
+              value: "postgres"
+            - name: KC_DB_URL
+              value: "jdbc:postgresql://user-db-service:5432/userdb"
+            - name: KC_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: DB_USER
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: biblio-secrets
+                  key: DB_PASSWORD
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HOSTNAME_STRICT_HTTPS
+              value: "false"
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_PROXY
+              value: "edge"
+          volumeMounts:
+            - name: keycloak-realm
+              mountPath: /opt/keycloak/data/import
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "200m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+      volumes:
+        - name: keycloak-realm
+          configMap:
+            name: keycloak-realm-config
+---
+# Keycloak Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-service
+  namespace: biblio
+  labels:
+    app: keycloak
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: keycloak
+---
+# Keycloak Realm ConfigMap (will need to be populated from realm-export.json)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  namespace: biblio
+data:
+  realm-export.json: |
+    {
+      "realm": "biblio",
+      "enabled": true,
+      "sslRequired": "external",
+      "registrationAllowed": true,
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": true,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": true,
+      "clients": [
+        {
+          "clientId": "biblio-app",
+          "enabled": true,
+          "publicClient": true,
+          "directAccessGrantsEnabled": true,
+          "standardFlowEnabled": true,
+          "implicitFlowEnabled": false,
+          "webOrigins": ["*"],
+          "redirectUris": ["*"],
+          "attributes": {
+            "access.token.lifespan": "3600"
+          }
+        },
+        {
+          "clientId": "biblio-client",
+          "enabled": true,
+          "publicClient": true,
+          "directAccessGrantsEnabled": true,
+          "standardFlowEnabled": true,
+          "webOrigins": ["*"],
+          "redirectUris": ["*"]
+        }
+      ],
+      "roles": {
+        "realm": [
+          {"name": "user", "description": "Standard user role"},
+          {"name": "admin", "description": "Administrator role"}
+        ]
+      },
+      "defaultRoles": ["user"],
+      "users": [
+        {
+          "username": "admin",
+          "enabled": true,
+          "email": "admin@biblio.local",
+          "firstName": "Admin",
+          "lastName": "User",
+          "credentials": [{"type": "password", "value": "admin", "temporary": false}],
+          "realmRoles": ["admin", "user"]
+        },
+        {
+          "username": "user",
+          "enabled": true,
+          "email": "user@biblio.local",
+          "firstName": "Test",
+          "lastName": "User",
+          "credentials": [{"type": "password", "value": "user", "temporary": false}],
+          "realmRoles": ["user"]
+        }
+      ]
+    }
