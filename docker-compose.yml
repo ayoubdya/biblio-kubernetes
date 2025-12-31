@@ -100,6 +100,28 @@ services:
       retries: 3
     restart: unless-stopped
 
+  # Jenkins CI/CD
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    privileged: true
+    user: root
+    ports:
+      - "8085:8080"
+      - "50000:50000"
+    environment:
+      JENKINS_OPTS: "--prefix=/jenkins"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/jenkins/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+
   # Bases de données
   comment-db:
     image: postgres:15-alpine
@@ -326,6 +348,7 @@ volumes:
   user-data:
   prometheus-data:
   grafana-data:
+  jenkins-data:
 
 networks:
   default:
