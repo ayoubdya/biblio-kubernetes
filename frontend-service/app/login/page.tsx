@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { keycloakLogin, saveUser, getCurrentUser, handleApiError } from '@/app/lib/api';
 
 function LoginForm() {
   const router = useRouter();
@@ -17,43 +18,42 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Check if already logged in
+    const user = getCurrentUser();
+    if (user) {
+      router.push(user.roles.includes('admin') ? '/admin' : '/books');
+      return;
+    }
+    
     if (searchParams.get('registered') === 'true') {
       setSuccess('Inscription réussie ! Vous pouvez maintenant vous connecter.');
     }
-  }, [searchParams]);
+    if (searchParams.get('expired') === 'true') {
+      setError('Votre session a expiré. Veuillez vous reconnecter.');
+    }
+  }, [searchParams, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
     try {
-      // Simulate authentication - remplacer par vraie API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Authenticate with Keycloak
+      const user = await keycloakLogin(formData.email, formData.password);
       
-      // Validation stricte des credentials
-      if (formData.email === 'admin@biblio.com' && formData.password === 'admin') {
-        // Admin login
-        localStorage.setItem('user', JSON.stringify({ 
-          email: formData.email, 
-          role: 'admin',
-          name: 'Administrateur'
-        }));
+      // Save user to localStorage
+      saveUser(user);
+      
+      // Redirect based on role
+      if (user.roles.includes('admin')) {
         router.push('/admin');
-      } else if (formData.email === 'user@biblio.com' && formData.password === 'user') {
-        // Regular user login
-        localStorage.setItem('user', JSON.stringify({ 
-          email: formData.email, 
-          role: 'user',
-          name: 'Utilisateur'
-        }));
-        router.push('/books');
       } else {
-        // Credentials invalides
-        setError('Email ou mot de passe incorrect');
+        router.push('/books');
       }
     } catch (err) {
-      setError('Une erreur est survenue. Veuillez réessayer.');
+      setError(handleApiError(err));
     } finally {
       setLoading(false);
     }
@@ -195,11 +195,14 @@ function LoginForm() {
 
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs font-semibold text-blue-800 mb-2">🔑 Comptes de démonstration :</p>
+            <p className="text-xs font-semibold text-blue-800 mb-2">🔑 Comptes Keycloak :</p>
             <div className="space-y-1 text-xs text-blue-700">
-              <p><strong>Admin:</strong> admin@biblio.com / admin</p>
-              <p><strong>User:</strong> user@biblio.com / user</p>
+              <p><strong>Admin:</strong> admin / admin</p>
+              <p><strong>User:</strong> user / user</p>
             </div>
+            <p className="text-xs text-blue-600 mt-2">
+              💡 Assurez-vous que Keycloak est démarré sur le port 8180
+            </p>
           </div>
         </form>
 

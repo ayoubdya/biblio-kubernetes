@@ -3,25 +3,30 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { getCurrentUser, clearUser, keycloakLogout, type AuthUser } from '@/app/lib/api';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
-    // Récupérer les infos utilisateur du localStorage
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      setUser(JSON.parse(userStr));
-    }
+    // Get current authenticated user
+    const authUser = getCurrentUser();
+    setUser(authUser);
   }, [pathname]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    if (user?.refreshToken) {
+      await keycloakLogout(user.refreshToken);
+    }
+    clearUser();
     setUser(null);
     router.push('/login');
   };
+
+  // Helper to check if user has admin role
+  const isAdmin = user?.roles?.includes('admin') || user?.roles?.includes('realm-admin');
 
   return (
     <nav className="glass border-b border-gray-200 sticky top-0 z-50">
@@ -55,14 +60,14 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 px-3 py-1 bg-indigo-50 rounded-lg">
                   <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                    {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
+                    {user.name?.charAt(0) || user.username?.charAt(0) || 'U'}
                   </div>
                   <div className="hidden sm:block">
-                    <p className="text-sm font-semibold text-gray-900">{user.name || user.email}</p>
-                    <p className="text-xs text-gray-500">{user.role || 'Utilisateur'}</p>
+                    <p className="text-sm font-semibold text-gray-900">{user.name || user.username}</p>
+                    <p className="text-xs text-gray-500">{isAdmin ? 'Administrateur' : 'Utilisateur'}</p>
                   </div>
                 </div>
-                {user.role === 'admin' && (
+                {isAdmin && (
                   <Link
                     href="/admin"
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
