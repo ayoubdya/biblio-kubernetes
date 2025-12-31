@@ -1,4 +1,33 @@
 services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend-service
+      - catalog-service
+      - user-service
+      - comment-service
+      - keycloak
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
   # Bases de données
   comment-db:
     image: postgres:15-alpine
@@ -184,7 +213,7 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      # Keycloak (server-side - internal network)
+      # Keycloak (server-side - via nginx internal)
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_REALM: biblio
       KEYCLOAK_CLIENT_ID: biblio-client
@@ -192,13 +221,14 @@ services:
       CATALOG_SERVICE_URL: http://catalog-service:8080
       USER_SERVICE_URL: http://user-service:8081
       COMMENT_SERVICE_URL: http://comment-service:8082
-      # Client-side URLs (accessed from browser)
-      NEXT_PUBLIC_KEYCLOAK_URL: http://localhost:8180
+      # Client-side URLs (via Nginx proxy on port 80)
+      NEXT_PUBLIC_API_BASE_URL: http://localhost
+      NEXT_PUBLIC_KEYCLOAK_URL: http://localhost/auth
       NEXT_PUBLIC_KEYCLOAK_REALM: biblio
       NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: biblio-client
-      NEXT_PUBLIC_CATALOG_SERVICE_URL: http://localhost:8090
-      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost:8081
-      NEXT_PUBLIC_COMMENT_SERVICE_URL: http://localhost:8082
+      NEXT_PUBLIC_CATALOG_SERVICE_URL: http://localhost/api/catalog
+      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost/api/users
+      NEXT_PUBLIC_COMMENT_SERVICE_URL: http://localhost/api/comments
     depends_on:
       - catalog-service
       - user-service
